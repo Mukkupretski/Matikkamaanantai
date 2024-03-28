@@ -96,5 +96,5 @@ def main():
             
         draw_canvas()
 
-
-main()
+if __name__ == "__main__":
+    main()
