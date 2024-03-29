@@ -31,8 +31,8 @@ def learn():
         delta_B = np.zeros(biases.shape)
         for j in range(((i-1)*1000)%60000,((i-1)*1000)%60000+1000):
             current_data = train_data.iloc[j]
-            A_l, Z_l = forwardpropagation(j.iloc[1:])
-            delta_W0, delta_B0 = backpropagation(j.iloc[0], A_l, Z_l)
+            A_l, Z_l = forwardpropagation(current_data.iloc[1:])
+            delta_W0, delta_B0 = backpropagation(current_data.iloc[0], A_l, Z_l)
             delta_W += delta_W0
             delta_B += delta_B0
         weights -= learning_rate*delta_W
