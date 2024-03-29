@@ -1,8 +1,10 @@
 import pygame
-from main import guess
+from main import guess, learn
 import math
 import numpy as np
 from scipy.signal import convolve2d
+
+learn()
 
 pygame.font.init()
 
