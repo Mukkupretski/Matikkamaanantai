@@ -1,5 +1,7 @@
 import pygame
 from main import guess
+import numpy as np
+from scipy.signal import convolve2d
 
 pygame.font.init()
 
@@ -30,7 +32,7 @@ HEIGHT = 400
 
 BUTTON_HEIGHT = 20
 BUTTON_WIDTH = 80
-BUTTON_GAP = 50
+BUTTON_GAP = 20
 
 
 PIXEL_SIZE = 10
@@ -43,15 +45,13 @@ COMICSANS = pygame.font.SysFont("comicsans", 16)
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Piirtoalusta")
 
-state = [0]*28*28
+state = np.zeros(784)
 
 def draw_canvas():
     global state
     WIN.fill(ORANGE)
     for i in range(len(state)):
-        color = WHITE
-        if state[i] == 1:
-            color = BLACK
+        color = (((1-state[i])*255,(1-state[i])*255,(1-state[i])*255))
         WIN.fill(color, (i%28*PIXEL_SIZE+PADDING_LEFT, i//28*PIXEL_SIZE+PADDING_TOP, PIXEL_SIZE, PIXEL_SIZE))
     for button in Button.buttons:
         button.draw()
@@ -63,16 +63,23 @@ def set_state(newState):
     state = newState
 
 def clear():
-    set_state(784*[0])
+    set_state(np.zeros(784))
 
 def recognize():
     guess(state)
 
+def convolve():
+    global state
+
+    state = convolve2d(state.reshape((28,28)), np.ones((3,3))/9, mode="same").reshape((784))
+
+
 def main():
     run = True
     mousedown = False
-    Button(PADDING_LEFT + 14*PIXEL_SIZE-BUTTON_GAP/2-BUTTON_WIDTH, PADDING_TOP+28*PIXEL_SIZE+(HEIGHT-(PADDING_TOP+28*PIXEL_SIZE))/2-BUTTON_HEIGHT, "Tyhjennä", clear)
-    Button(PADDING_LEFT + 14*PIXEL_SIZE+BUTTON_GAP/2, PADDING_TOP+28*PIXEL_SIZE+(HEIGHT-(PADDING_TOP+28*PIXEL_SIZE))/2-BUTTON_HEIGHT, "Tunnista", recognize)
+    Button(PADDING_LEFT + 14*PIXEL_SIZE-BUTTON_GAP-BUTTON_WIDTH*3/2, PADDING_TOP+28*PIXEL_SIZE+(HEIGHT-(PADDING_TOP+28*PIXEL_SIZE))/2-BUTTON_HEIGHT, "Tyhjennä", clear)
+    Button(PADDING_LEFT + 14*PIXEL_SIZE-BUTTON_WIDTH/2, PADDING_TOP+28*PIXEL_SIZE+(HEIGHT-(PADDING_TOP+28*PIXEL_SIZE))/2-BUTTON_HEIGHT, "Sumenna", convolve)
+    Button(PADDING_LEFT + 14*PIXEL_SIZE+BUTTON_WIDTH/2+BUTTON_GAP, PADDING_TOP+28*PIXEL_SIZE+(HEIGHT-(PADDING_TOP+28*PIXEL_SIZE))/2-BUTTON_HEIGHT, "Tunnista", recognize)
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
