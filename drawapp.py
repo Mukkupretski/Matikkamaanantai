@@ -1,6 +1,5 @@
 import pygame
-from main import guess, learn
-import math
+from main2 import guess, learn
 import numpy as np
 from scipy.signal import convolve2d
 

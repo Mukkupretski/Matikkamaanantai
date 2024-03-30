@@ -9,11 +9,12 @@ train_data = pd.read_csv("./data/mnist_train.csv")
 print("Train data loaded")
 
 #Initializing variables
-structure = np.array([28*28, 16, 16, 10])
-learning_rate = 1
+structure = [28*28, 16, 16, 10]
 
-biases = np.array([np.zeros(i) for i in structure[1:]])
-weights = np.array([np.random.randn(structure[i]+1, structure[i]) for i in range(structure.size-1)])
+learning_rate = 0.01
+
+biases = [np.zeros(i) for i in structure[1:]]
+weights = [np.random.randn(structure[i+1], structure[i]) for i in range(len(structure)-1)]
 
 correct_rate = 0
 
@@ -26,19 +27,19 @@ def learn():
     global weights
     global biases
     i = 1
-    while correct_rate < 0.85:
-        delta_W = np.zeros(weights.shape)
-        delta_B = np.zeros(biases.shape)
-        for j in range(((i-1)*1000)%60000,((i-1)*1000)%60000+1000):
+    while correct_rate < 0.15:
+        delta_W = [np.zeros(w.shape) for w in weights]
+        delta_B = [np.zeros(b.shape) for b in biases]
+        for j in range(((i-1)*32)%60000,((i-1)*32)%60000+32):
             current_data = train_data.iloc[j]
-            A_l, Z_l = forwardpropagation(current_data.iloc[1:])
+            A_l, Z_l = forwardpropagation(np.array(current_data.iloc[1:])/255)
             delta_W0, delta_B0 = backpropagation(current_data.iloc[0], A_l, Z_l)
-            delta_W += delta_W0
-            delta_B += delta_B0
-        weights -= learning_rate*delta_W
-        biases -= learning_rate*delta_B
-        if i%10==0:
-            calculateCorrectRate()
+            delta_W = [delta_W[i]+delta_W0[i] for i in range(len(delta_W0))]
+            delta_B = [delta_B[i]+delta_B0[i] for i in range(len(delta_B0))]
+        weights =  [weights[i]-learning_rate*delta_W[i]/32 for i in range(len(delta_W))]
+        biases =  [biases[i]-learning_rate*delta_B[i]/32 for i in range(len(delta_B))]
+        if i%10==0 :
+            correct_rate = calculateCorrectRate()
             print(f"Kierros: {i}")
             print(f"Oppimistaso: {correct_rate*100}%")
         i += 1
@@ -46,55 +47,56 @@ def learn():
     print("Oppiminen valmistui. Pidä hauskaa :)!")
 
 def forwardpropagation(imageData):
-    A_l = np.array([imageData])
-    Z_l = np.array([])
+    A_l = [imageData]
+    Z_l = []
     for i in range(len(structure)-1):
-        temp_Z = np.dot(weights[i]*A_l[i])+biases[i]
-        Z_l = np.append(Z_l, temp_Z, 0)
-        A_l = np.append(A_l, sigmoid(temp_Z))
+        temp_Z = np.dot(weights[i],A_l[i])+biases[i]
+        Z_l.append(temp_Z)
+        A_l.append(sigmoid(temp_Z))
     return A_l, Z_l
 
-def backpropagation(label, A_l, Z_l):
-    targets = np.array([1 if i==label else 0 for i in range(10)])
+def backpropagation(label, A_l, Z_l ):
+    targets = np.array([1 if i==label else 0 for i in range(structure[-1])])
     delta_a = np.array([2*(A_l[-1][i]-targets[i]) for i in range(structure[-1])])
-    delta_W0 = np.array([[[]]])
-    delta_B0 = np.array([[]])
+    delta_W0 = [np.zeros(w.shape) for w in weights]
+    delta_B0 = [np.zeros(b.shape) for b in biases]
     for i in range(len(structure)-1):
-        delta_B0_l = np.array([])
-        delta_W0_l = np.array([[]])
-        Z_layer = Z_l[-i-1]
-        A_layer = A_l[-i-1]
-        for j in range(len(delta_a)):
+        current_pos = -1-i
+        delta_W0_l = np.zeros(delta_W0[current_pos].shape)
+        delta_B0_l = np.zeros(delta_B0[current_pos].shape)
+        Z_layer = Z_l[current_pos]
+        A_layer = A_l[current_pos]
+        A_prevlayer = A_l[current_pos-1]
+        for j in range(len(A_layer)):
             delta_z_C = sigmoid_derivative(Z_layer[j])*delta_a[j]
-            delta_B0_l = np.append(delta_B0_l, delta_z_C)
-            delta_W0_j = np.array([])
-            for k in range(structure[-i-2]):
-                delta_W0_j = np.append(delta_W0_j, A_layer[j]*delta_z_C)
-            delta_W0_l = np.append(delta_W0_l, delta_W0_j, axis=0)
+            delta_B0_l[j] = delta_z_C
+            delta_W0_j = np.zeros(delta_W0_l[j].shape)
+            for k in range(len(A_prevlayer)):
+                delta_W0_j[k] = A_prevlayer[k]*delta_z_C
+            delta_W0_l[j] = delta_W0_j
 
-        delta_W0 = np.insert(delta_W0,0,delta_W0_l,axis=0)
-        delta_B0 = np.insert(delta_W0,0,delta_B0_l,axis=0)
+        delta_W0[current_pos] = delta_W0_l
+        delta_B0[current_pos] = delta_B0_l
         
-        new_delta_a = np.array([])            
+        new_delta_a = np.zeros(structure[current_pos-1])          
 
-        for k in range(structure[-i-2]):
+        for k in range(structure[current_pos-1]):
             sum = 0
             for j in range(len(delta_a)):
                 sum += weights[-i-1][j][k]*sigmoid_derivative(Z_layer[j])*delta_a[j]
-            new_delta_a = np.append(new_delta_a, sum)
+            new_delta_a[k] = sum
         delta_a = new_delta_a
         
     return delta_W0, delta_B0
 def calculateCorrectRate():
-    global correct_rate
     corrects = 0
     for i in range(1000):
         current = test_data.iloc[i]
         label = current.iloc[0]
-        imageData = current.iloc[1:]
+        imageData = np.array(current.iloc[1:])/255
         if label == np.argmax(guess(imageData)):
             corrects += 1
-    correct_rate = corrects/1000
+    return corrects/1000
 
 def sigmoid(x):
     return 1/(1+np.exp(-x))
