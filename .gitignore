@@ -1,2 +1,3 @@
 /data/*.csv
 /__pycache__
+/tfmodels
