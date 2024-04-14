@@ -19,7 +19,7 @@ Y_train = data.iloc[1000:, 0]
 model = Sequential()
 def learn():
     model.add(Input(shape=(784,)))
-    model.add(Dense(units=16, activation="relu"))
+    model.add(Dense(units=10, activation="relu"))
     model.add(Dense(units=10, activation="softmax"))
 
     model.compile(loss="sparse_categorical_crossentropy", optimizer="sgd")
