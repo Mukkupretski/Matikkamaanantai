@@ -8,3 +8,4 @@
 - Tyhjentäminen
 - Piirroksen sumentaminen
 - Tulosten näyttäminen
+- Testausdatan satunnaisten näytteiden näyttäminen ja arvioiminen
