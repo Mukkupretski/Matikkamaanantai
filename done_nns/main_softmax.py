@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from done_nns.funcs2 import *
+import random
 
 data = np.array(pd.read_csv("./data/mnist_train.csv"))
 print("Data loaded")
@@ -44,3 +45,6 @@ def start_learning(labels, imgdata, alpha, iterations):
 def guess(imageData):
     _, _, _, A2 = forwardpropagation_softmax(imageData[:, np.newaxis], W1, B1, W2, B2)
     return A2.flatten()
+def guessRandom():
+    imageData = test_imgs[:, random.randint(0, len(test_imgs)-1)]
+    return imageData, guess(imageData)

@@ -1,5 +1,5 @@
 import pygame
-from done_nns.main_softmax import guess, learn
+from done_nns.main_softmax import guess, learn, guessRandom
 import numpy as np
 from scipy.signal import convolve2d
 
@@ -37,7 +37,7 @@ WIDTH = 500
 HEIGHT = 400
 
 BUTTON_HEIGHT = 20
-BUTTON_WIDTH = 80
+BUTTON_WIDTH = 100
 BUTTON_GAP = 20
 BUTTON_HOP = 16
 
@@ -80,12 +80,20 @@ def set_state(newState):
     global state
     state = newState
 
+def set_results(newResults):
+    global results
+    results = newResults
+
 def clear():
     set_state(np.zeros(784))
 
 def recognize():
-    global results
-    results = guess(state)
+    set_results(guess(state))
+
+def getRandomGuess():
+    state, predictions = guessRandom()
+    set_state(state)
+    set_results(predictions)
 
 def blur():
     global state
@@ -106,6 +114,7 @@ def main():
     Button(PADDING_LEFT + 14*PIXEL_SIZE-BUTTON_WIDTH/2, PADDING_TOP+28*PIXEL_SIZE+(HEIGHT-(PADDING_TOP+28*PIXEL_SIZE))/2-BUTTON_HEIGHT, "Sumenna", blur)
     Button(PADDING_LEFT + 14*PIXEL_SIZE+BUTTON_WIDTH/2+BUTTON_GAP, PADDING_TOP+28*PIXEL_SIZE+(HEIGHT-(PADDING_TOP+28*PIXEL_SIZE))/2-BUTTON_HEIGHT, "Tunnista", recognize)
     button = Button(PADDING_LEFT + 28*PIXEL_SIZE+(WIDTH-(PADDING_LEFT + 28*PIXEL_SIZE))/2-BUTTON_WIDTH/2, RESULT_PADDING_TOP+BUTTON_HOP+RESULT_GAP, "Näytä lisää", toggleShow)
+    Button(PADDING_LEFT + 28*PIXEL_SIZE+(WIDTH-(PADDING_LEFT + 28*PIXEL_SIZE))/2-BUTTON_WIDTH/2, PADDING_TOP/2, "Satunnainen", getRandomGuess)
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

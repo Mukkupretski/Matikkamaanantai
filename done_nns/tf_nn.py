@@ -5,9 +5,10 @@ from keras.models import Sequential, load_model
 from sklearn.metrics import accuracy_score
 import pandas as pd
 import numpy as np
+import random
 
 #Importing data
-data = pd.read_csv("./data/mnist_test.csv")
+data = pd.read_csv("./data/mnist_train.csv")
 print("Csv read")
 
 X_test = data.iloc[:1000, 1:].values.astype("float32")/255
@@ -31,3 +32,6 @@ def learn():
     model.save_weights('./tfmodels/mnist.weights.h5')
 def guess(imageData):
     return model.predict((imageData[:, np.newaxis].T)).flatten()
+def guessRandom():
+    imageData = X_test[random.randint(0, len(X_test)-1)]
+    return imageData, guess(imageData)
