@@ -1,5 +1,5 @@
 import pygame
-from done_nns.main_softmax import guess, learn, guessRandom
+from main import guess, learn, guessRandom
 import numpy as np
 from scipy.signal import convolve2d
 
